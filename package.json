@@ -1,0 +1,26 @@
+{
+  "name": "workflow_engine",
+  "version": "1.0.0",
+  "description": "> Designing a workflow engine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eccx400/workflow_engine.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eccx400/workflow_engine/issues"
+  },
+  "homepage": "https://github.com/eccx400/workflow_engine#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "stripe": "^8.222.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.0"
+  }
+}
