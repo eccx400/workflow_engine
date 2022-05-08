@@ -12,17 +12,19 @@ function onFormSubmit(event) {
 
   for (var i = 0; i < itemResponses.length; i++){
     var itemResponse = itemResponses[i];
-    if (itemResponse.getResponse()){
-      var question = itemResponse.getItem().getTitle();
-      var response = itemResponse.getResponse();
+    var question = itemResponse.getItem().getTitle();
+    var response = itemResponse.getResponse();
+    if(response != ""){
       emailBody += question + "\n" + response + "\n\n";
 
-      Logger.log(question);
-      Logger.log(response);
-
-      res.push(response)
+      Logger.log(question)
+      Logger.log(response)
     }
+
+    res.push(response)
   }
+  
+  emailBody += "Your total amount is: \n\n" + "$" + GetCost(res[3], res[4], res[5], res[6], res[7], res[8])
 
   Logger.log(emailBody)
 
