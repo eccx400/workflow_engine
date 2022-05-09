@@ -17,8 +17,8 @@ function onFormSubmit(event) {
     if(response != "" && question != "Credit Card Number" && question != "Exp. Month" && question != "Exp. Year" && question != "CVC"){
       emailBody += question + "\n" + response + "\n\n";
 
-      Logger.log(question)
-      Logger.log(response)
+      //Logger.log(question)
+      //Logger.log(response)
     }
 
     res.push(response)
@@ -87,15 +87,21 @@ function DecrementStock(tYS, tGT, tGL, jYS, jGT, jGL){
   var ss = SpreadsheetApp.openByUrl(url)
   var dataSheet = ss.getSheetByName("StockSheet");
   var yellowT = dataSheet.getRange("C2").getValues();
-  dataSheet.getRange("C2").setValue(yellowT - tYS);
   var tetonT = dataSheet.getRange("C3").getValues();
-  dataSheet.getRange("C3").setValue(tetonT - tGT);
   var glacierT = dataSheet.getRange("C4").getValues();
-  dataSheet.getRange("C4").setValue(glacierT - tGL);
   var yellowJ = dataSheet.getRange("C5").getValues();
-  dataSheet.getRange("C5").setValue(yellowJ  - jYS);
   var tetonJ = dataSheet.getRange("C6").getValues();
-  dataSheet.getRange("C6").setValue(tetonJ - jGT);
   var glacierJ = dataSheet.getRange("C7").getValues();
   dataSheet.getRange("C7").setValue(glacierJ - jGL);
+
+  if(tYS <= yellowT && tGT <= tetonT && tGL <= glacierT && yellowJ <= jYS && tetonJ <= jGT && glacierJ && jGL){
+    dataSheet.getRange("C2").setValue(yellowT - tYS);
+    dataSheet.getRange("C3").setValue(tetonT - tGT);
+    dataSheet.getRange("C4").setValue(glacierT - tGL);
+    dataSheet.getRange("C5").setValue(yellowJ  - jYS);
+    dataSheet.getRange("C6").setValue(tetonJ - jGT);
+    dataSheet.getRange("C7").setValue(glacierJ - jGL);
+  }else{
+    Logger.log("Inventory Out of Stock")
+  }
 }
