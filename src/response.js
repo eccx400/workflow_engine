@@ -1,5 +1,6 @@
 /* Executes upon form submit */
 function onFormSubmit(event) {
+  // Results to store answers
   res = []
 
   var form = FormApp.openById('1sJS6XpvQYBOhSNZOd9AXIyOywGnUNWkd7nyhZWUzXLY');
@@ -10,10 +11,12 @@ function onFormSubmit(event) {
   var itemResponses = formResponse.getItemResponses();
   var emailBody = "Here is your order summary:\n\n";
 
+  // For each form get question and responses for the user
   for (var i = 0; i < itemResponses.length; i++){
     var itemResponse = itemResponses[i];
     var question = itemResponse.getItem().getTitle();
     var response = itemResponse.getResponse();
+    // Remove empty responses and Credit card information from email body
     if(response != "" && question != "Credit Card Number" && question != "Exp. Month" && question != "Exp. Year" && question != "CVC"){
       emailBody += question + "\n" + response + "\n\n";
 
@@ -23,18 +26,20 @@ function onFormSubmit(event) {
 
     res.push(response)
   }
+  // Sets initial Paid value in sheets to "No"
   res.push("No")
   
+  // Put total purchase sum to email body
   totalSum = GetCost(res[3], res[4], res[5], res[6], res[7], res[8])
   emailBody += "Your total amount is: \n\n" + "$" + totalSum
 
-  Logger.log(emailBody)
-
-  //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
+  // Calls addOrder function which adds the res array into the Google Sheets
+  AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
 
   var paymentLink = StripePayment(totalSum)
   Logger.log(paymentLink)
 
+  // If Payment succeeds, change paid to Yes, send email, and decrement stock, else send email saying transaction failed
   if (StripePayment(totalSum).getResponseCode() == 200){
     OrderPaid()
     SendEmail(res[0], emailBody)
@@ -49,19 +54,24 @@ function AddOrder(email, fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, mo
   var url = 'https://docs.google.com/spreadsheets/d/1wZbVip75JMmuMhu1oStP0MdsBknAZ9qfJx46ZHjER3E/edit#gid=962403957';
   var ss = SpreadsheetApp.openByUrl(url)
   var dataSheet = ss.getSheetByName("FormResponse")
+
+  // Add values from parameters (aka res array in onFormSubmit())
   dataSheet.appendRow([email, new Date(), fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, month, year, cvc, paid])
 }
 
 /* Gets total order cost */
 function GetCost(tYS, tGT, tGL, jYS, jGT, jGL){
+  // Gets total T-shirt * 19.99 + total jacket * 49.99; Need to use parseInt to prevent possible non int value being appended
   return (parseInt(tYS) + parseInt(tGT) + parseInt(tGL)) * 19.99 + (parseInt(jYS) + parseInt(jGT) + parseInt(jGL)) * 49.99;
 }
 
-/* Changes paid from No to Yes */
+/* Changes paid from No to Yes; called after transaction returns 200 OK */
 function OrderPaid(){
   var url = 'https://docs.google.com/spreadsheets/d/1wZbVip75JMmuMhu1oStP0MdsBknAZ9qfJx46ZHjER3E/edit#gid=962403957';
   var ss = SpreadsheetApp.openByUrl(url)
   var dataSheet = ss.getSheetByName("FormResponse")
+
+  // Set last order with "Yes" to determine order payment has been fufilled
   dataSheet.getRange(dataSheet.getLastRow(), 16, 1, 1).setValue("Yes");
 }
 
@@ -106,6 +116,8 @@ function DecrementStock(tYS, tGT, tGL, jYS, jGT, jGL){
   var url = 'https://docs.google.com/spreadsheets/d/1wZbVip75JMmuMhu1oStP0MdsBknAZ9qfJx46ZHjER3E/edit#gid=962403957';
   var ss = SpreadsheetApp.openByUrl(url)
   var dataSheet = ss.getSheetByName("StockSheet");
+
+  // Get values of original store inventory
   var yellowT = dataSheet.getRange("C2").getValues();
   var tetonT = dataSheet.getRange("C3").getValues();
   var glacierT = dataSheet.getRange("C4").getValues();
@@ -117,6 +129,7 @@ function DecrementStock(tYS, tGT, tGL, jYS, jGT, jGL){
   if(yellowT - tYS < 0 || tetonT - tGT < 0 || glacierT - tGL < 0 || yellowJ  - jYS < 0 || tetonJ - jGT < 0 || glacierJ - jGL < 0){
     Logger.log("Inventory Out of Stock")
   }else{
+    // Decrement each item by purchased amounts
     dataSheet.getRange("C2").setValue(yellowT - tYS);
     dataSheet.getRange("C3").setValue(tetonT - tGT);
     dataSheet.getRange("C4").setValue(glacierT - tGL);
