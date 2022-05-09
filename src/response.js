@@ -27,11 +27,12 @@ function onFormSubmit(event) {
   totalSum = GetCost(res[3], res[4], res[5], res[6], res[7], res[8])
   emailBody += "Your total amount is: \n\n" + "$" + totalSum
 
-  Logger.log(emailBody)
+  //Logger.log(emailBody)
 
   //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12])
   //SendEmail(res[0], emailBody)
 
+  Logger.log(res)
   DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
 
   /*
@@ -92,16 +93,16 @@ function DecrementStock(tYS, tGT, tGL, jYS, jGT, jGL){
   var yellowJ = dataSheet.getRange("C5").getValues();
   var tetonJ = dataSheet.getRange("C6").getValues();
   var glacierJ = dataSheet.getRange("C7").getValues();
-  dataSheet.getRange("C7").setValue(glacierJ - jGL);
 
-  if(tYS <= yellowT && tGT <= tetonT && tGL <= glacierT && yellowJ <= jYS && tetonJ <= jGT && glacierJ && jGL){
+  // Check if stock is already lower than the purchased amount
+  if(yellowT - tYS < 0 || tetonT - tGT < 0 || glacierT - tGL < 0 || yellowJ  - jYS < 0 || tetonJ - jGT < 0 || glacierJ - jGL < 0){
+    Logger.log("Inventory Out of Stock")
+  }else{
     dataSheet.getRange("C2").setValue(yellowT - tYS);
     dataSheet.getRange("C3").setValue(tetonT - tGT);
     dataSheet.getRange("C4").setValue(glacierT - tGL);
     dataSheet.getRange("C5").setValue(yellowJ  - jYS);
     dataSheet.getRange("C6").setValue(tetonJ - jGT);
     dataSheet.getRange("C7").setValue(glacierJ - jGL);
-  }else{
-    Logger.log("Inventory Out of Stock")
   }
 }
