@@ -111,8 +111,8 @@ function StripePayment(amount){
 
 /* Test PayPal payment */
 function PayPalPayment(amount, ccn, month, year, cvc){
-  var client_id = "Adv2KdTWQtWBKJv-dCW4kcTWMvOcSceSa7qZgM8fB6JZUGOx4px0tSkxVCtiOu1KqLH1T8F4nzHcCJHh"; // Please input your client_id
-  var secret = "EI6TnuXK445TqQ3aoalSAVLFRydSdw_EzWju1FhPHy5afXQCUGaCQwo6FVpYgc9CDahAArkfz7W7NweH"; // Please input your client secret
+  var client_id = process.env.PAYPAL_PUBLIC; // Please input your client_id
+  var secret = process.env.PAYPAL_PRIVATE; // Please input your client secret
 
   var options = {
     method: "post",
