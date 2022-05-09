@@ -23,25 +23,25 @@ function onFormSubmit(event) {
 
     res.push(response)
   }
+  res.push("No")
   
   totalSum = GetCost(res[3], res[4], res[5], res[6], res[7], res[8])
   emailBody += "Your total amount is: \n\n" + "$" + totalSum
 
   //Logger.log(emailBody)
 
-  //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12])
+  //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
   //SendEmail(res[0], emailBody)
 
-  Logger.log(res)
-  DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
+  //DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
 
   /*
   //TODO
   StripePayment
   if (paymentSuccess && Stock != 0){
-    Update res[10] = paid
+    OrderPaid()
     SendEmail(res[0], emailBody)
-    DecrementStock()
+    DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
   }else{
     SendEmail(res[0], "Transaction failed")
   }
@@ -49,16 +49,24 @@ function onFormSubmit(event) {
 }
 
 /* Adds user response from form to spreadsheet */
-function AddOrder(email, fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, month, year, cvc) {
+function AddOrder(email, fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, month, year, cvc, paid) {
   var url = 'https://docs.google.com/spreadsheets/d/1wZbVip75JMmuMhu1oStP0MdsBknAZ9qfJx46ZHjER3E/edit#gid=962403957';
   var ss = SpreadsheetApp.openByUrl(url)
   var dataSheet = ss.getSheetByName("FormResponse")
-  dataSheet.appendRow([email, new Date(), fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, month, year, cvc,"No"])
+  dataSheet.appendRow([email, new Date(), fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, month, year, cvc, paid])
 }
 
 /* Gets total order cost */
 function GetCost(tYS, tGT, tGL, jYS, jGT, jGL){
   return (tYS + tGT + tGL) * 19.99 + (jYS + jGT + jGL) * 49.99;
+}
+
+/* Changes paid from No to Yes */
+function OrderPaid(){
+  var url = 'https://docs.google.com/spreadsheets/d/1wZbVip75JMmuMhu1oStP0MdsBknAZ9qfJx46ZHjER3E/edit#gid=962403957';
+  var ss = SpreadsheetApp.openByUrl(url)
+  var dataSheet = ss.getSheetByName("FormResponse")
+  dataSheet.getRange(dataSheet.getLastRow(), 16, 1, 1).setValue("Yes");
 }
 
 /* Sends email to recipent with order summary*/
