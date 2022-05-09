@@ -35,6 +35,8 @@ function onFormSubmit(event) {
 
   //DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
 
+  StripePayment(totalSum)
+
   /*
   //TODO
   StripePayment
@@ -58,7 +60,7 @@ function AddOrder(email, fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, mo
 
 /* Gets total order cost */
 function GetCost(tYS, tGT, tGL, jYS, jGT, jGL){
-  return (tYS + tGT + tGL) * 19.99 + (jYS + jGT + jGL) * 49.99;
+  return (parseInt(tYS) + parseInt(tGT) + parseInt(tGL)) * 19.99 + (parseInt(jYS) + parseInt(jGT) + parseInt(jGL)) * 49.99;
 }
 
 /* Changes paid from No to Yes */
@@ -79,15 +81,50 @@ function SendEmail(email, emailBody) {
 }
 
 /* Proceed with payment option using Stripe API */
-function StripePayment(ccn, month, year, cvc){
-  var url = "https://api.stripe.com/v1/products";
+function StripePayment(amount){
+  var url = "https://api.stripe.com/v1/checkout/sessions";
+  
+  const paymentLoad = {
+    "payment_method_types[0]": "card",
+    "line_items[0][price_data][currency]": "usd",
+    "line_items[0][price_data][product_data][name]": "Online Clothes",
+    "line_items[0][price_data][unit_amount]": String(parseInt(amount) * 100),
+    "line_items[0][quantity]": String(1),
+    "mode": "payment",
+    "success_url": "https://example.com/success?session_id={CHECKOUT_SESSION_ID}",
+    "cancel_url": "https://example.com/cancel",
+  }
+
+  Logger.log(JSON.stringify(paymentLoad))
+
   var params = {
     method: "post",
-    headers: {Authorization: "Basic " + Utilities.base64Encode("sk_test_4eC39HqLyjWDarjtT1zdp7dc:")},
-    payload: {name: "My SaaS Platform", type: "service"}
+    headers: {
+      Authorization:
+        "Basic " + Utilities.base64Encode("sk_test_4eC39HqLyjWDarjtT1zdp7dc:"),
+    },
+    payload: paymentLoad,
   };
   var res = UrlFetchApp.fetch(url, params);
-  Logger.log(res.getContentText())
+  Logger.log(res.getContentText());
+}
+
+/* Test PayPal payment */
+function PayPalPayment(amount, ccn, month, year, cvc){
+  var client_id = "Adv2KdTWQtWBKJv-dCW4kcTWMvOcSceSa7qZgM8fB6JZUGOx4px0tSkxVCtiOu1KqLH1T8F4nzHcCJHh"; // Please input your client_id
+  var secret = "EI6TnuXK445TqQ3aoalSAVLFRydSdw_EzWju1FhPHy5afXQCUGaCQwo6FVpYgc9CDahAArkfz7W7NweH"; // Please input your client secret
+
+  var options = {
+    method: "post",
+    headers : {
+      "Authorization" : " Basic " + Utilities.base64Encode(client_id + ":" + secret),
+      "Accept": "application/json",
+      "Accept-Language": "en_US"
+    },
+    payload: {"grant_type": "client_credentials"}
+  };
+  var request = UrlFetchApp.fetch("https://api.sandbox.paypal.com/v1/oauth2/token", options);
+  Logger.log(request.getContentText())
 }
 
 /* Decrement Stock of item ONLY if payment succeeds */
