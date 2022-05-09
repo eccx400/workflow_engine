@@ -28,26 +28,19 @@ function onFormSubmit(event) {
   totalSum = GetCost(res[3], res[4], res[5], res[6], res[7], res[8])
   emailBody += "Your total amount is: \n\n" + "$" + totalSum
 
-  //Logger.log(emailBody)
+  Logger.log(emailBody)
 
-  //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
-  //SendEmail(res[0], emailBody)
+  AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
 
-  //DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
+  Logger.log(StripePayment(totalSum))
 
-  StripePayment(totalSum)
-
-  /*
-  //TODO
-  StripePayment
-  if (paymentSuccess && Stock != 0){
+  if (StripePayment(totalSum) == 200){
     OrderPaid()
     SendEmail(res[0], emailBody)
     DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
   }else{
     SendEmail(res[0], "Transaction failed")
   }
-  */
 }
 
 /* Adds user response from form to spreadsheet */
@@ -95,8 +88,6 @@ function StripePayment(amount){
     "cancel_url": "https://example.com/cancel",
   }
 
-  Logger.log(JSON.stringify(paymentLoad))
-
   var params = {
     method: "post",
     headers: {
@@ -107,24 +98,7 @@ function StripePayment(amount){
   };
   var res = UrlFetchApp.fetch(url, params);
   Logger.log(res.getContentText());
-}
-
-/* Test PayPal payment */
-function PayPalPayment(amount, ccn, month, year, cvc){
-  var client_id = process.env.PAYPAL_PUBLIC; // Please input your client_id
-  var secret = process.env.PAYPAL_PRIVATE; // Please input your client secret
-
-  var options = {
-    method: "post",
-    headers : {
-      "Authorization" : " Basic " + Utilities.base64Encode(client_id + ":" + secret),
-      "Accept": "application/json",
-      "Accept-Language": "en_US"
-    },
-    payload: {"grant_type": "client_credentials"}
-  };
-  var request = UrlFetchApp.fetch("https://api.sandbox.paypal.com/v1/oauth2/token", options);
-  Logger.log(request.getContentText())
+  return res.getResponseCode();
 }
 
 /* Decrement Stock of item ONLY if payment succeeds */
