@@ -30,11 +30,12 @@ function onFormSubmit(event) {
 
   Logger.log(emailBody)
 
-  AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
+  //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
 
-  Logger.log(StripePayment(totalSum))
+  var paymentLink = StripePayment(totalSum)
+  Logger.log(paymentLink)
 
-  if (StripePayment(totalSum) == 200){
+  if (StripePayment(totalSum).getResponseCode() == 200){
     OrderPaid()
     SendEmail(res[0], emailBody)
     DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
@@ -97,8 +98,7 @@ function StripePayment(amount){
     payload: paymentLoad,
   };
   var res = UrlFetchApp.fetch(url, params);
-  Logger.log(res.getContentText());
-  return res.getResponseCode();
+  return res
 }
 
 /* Decrement Stock of item ONLY if payment succeeds */
