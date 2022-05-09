@@ -20,8 +20,8 @@ function onFormSubmit(event) {
     if(response != "" && question != "Credit Card Number" && question != "Exp. Month" && question != "Exp. Year" && question != "CVC"){
       emailBody += question + "\n" + response + "\n\n";
 
-      //Logger.log(question)
-      //Logger.log(response)
+      Logger.log(question)
+      Logger.log(response)
     }
 
     res.push(response)
@@ -33,11 +33,13 @@ function onFormSubmit(event) {
   totalSum = GetCost(res[3], res[4], res[5], res[6], res[7], res[8])
   emailBody += "Your total amount is: \n\n" + "$" + totalSum
 
+  Logger.log(totalSum)
+
   // Calls addOrder function which adds the res array into the Google Sheets
   AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
 
   var paymentLink = StripePayment(totalSum)
-  Logger.log(paymentLink)
+  //Logger.log(paymentLink)
 
   // If Payment succeeds, change paid to Yes, send email, and decrement stock, else send email saying transaction failed
   if (StripePayment(totalSum).getResponseCode() == 200){
@@ -60,9 +62,17 @@ function AddOrder(email, fn, ln, tYS, tGT, tGL, jYS, jGT, jGL, totalSum, ccn, mo
 }
 
 /* Gets total order cost */
+
 function GetCost(tYS, tGT, tGL, jYS, jGT, jGL){
   // Gets total T-shirt * 19.99 + total jacket * 49.99; Need to use parseInt to prevent possible non int value being appended
-  return (parseInt(tYS) + parseInt(tGT) + parseInt(tGL)) * 19.99 + (parseInt(jYS) + parseInt(jGT) + parseInt(jGL)) * 49.99;
+  tYS = tYS === null ? 0 : tYS;
+  tGT = tGT === null ? 0 : tGT;
+  tGL = tGL === null ? 0 : tGL;
+  jYS = jYS === null ? 0 : jYS;
+  jGT = jGT === null ? 0 : jGT;
+  jGL = jGL === null ? 0 : jGL;
+
+  return (tYS + tGT + tGL) * 19.99 + (jYS + jGT + jGL) * 49.99
 }
 
 /* Changes paid from No to Yes; called after transaction returns 200 OK */
