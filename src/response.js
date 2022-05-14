@@ -117,7 +117,7 @@ function StripePayment(amount){
     method: "post",
     headers: {
       Authorization:
-        "Basic " + Utilities.base64Encode("sk_test_4eC39HqLyjWDarjtT1zdp7dc:"),
+        "Basic " + Utilities.base64Encode(process.env.SECRET_KEY + ":"),
     },
     payload: paymentLoad,
   };
