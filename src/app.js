@@ -1,48 +1,36 @@
-const fs = require("fs");
-const { google } = require("googleapis");
+const stripe = Stripe(process.env.PUBLIC_KEY); // Your Publishable Key
+const elements = stripe.elements();
 
-const service = google.sheets("v4");
-const credentials = require("./credentials.json");
+// Create our card inputs
+var style = {
+  base: {
+    color: "#fff"
+  }
+};
 
-const authClient = new google.auth.JWT(
-    credentials.client_email,
-    null,
-    credentials.private_key.replace(/\\n/g, "\n"),
-    ["https://www.googleapis.com/auth/spreadsheets"]
-);
+const card = elements.create('card', { style });
+card.mount('#card-element');
 
-(async function () {
-    try {
-        const token = await authClient.authorize();
+const form = document.querySelector('form');
+const errorEl = document.querySelector('#card-errors');
 
-        authClient.setCredentials(token);
+// Give our token to our form
+const stripeTokenHandler = token => {
+  const hiddenInput = document.createElement('input');
+  hiddenInput.setAttribute('type', 'hidden');
+  hiddenInput.setAttribute('name', 'stripeToken');
+  hiddenInput.setAttribute('value', token.id);
+  form.appendChild(hiddenInput);
 
-        const res = await service.spreadsheets.values.get({
-            auth: authClient,
-            spreadsheetId: "1wZbVip75JMmuMhu1oStP0MdsBknAZ9qfJx46ZHjER3E",
-            range: "A:K",
-        });
+  form.submit();
+}
 
-        const answers = [];
-        const rows = res.data.values;
+// Create token from card data
+form.addEventListener('submit', e => {
+  e.preventDefault();
 
-        if (rows.length) {
-            rows.shift()
-
-            for (const row of rows) {
-                answers.push({ timeStamp: row[0], email: row[1], firstName: row[2], lastName: row[3], address: row[4], tshirtYellowStone: row[5], tshirtGrandTeton: row[6], tshirtGlacier: row[7], jacketYellowStone: row[8], jacketGrandTeton: row[9], jacketGlacier: row[10]});
-            }
-        } else {
-            console.log("No data found.");  
-        }
-
-        fs.writeFileSync("answers.json", JSON.stringify(answers), function (err, file) {
-            if (err) throw err;
-            console.log("Saved!");
-        });
-
-    } catch (error) {
-        console.log(error);
-        process.exit(1);
-    }
-})();
+  stripe.createToken(card).then(res => {
+    if (res.error) errorEl.textContent = res.error.message;
+    else stripeTokenHandler(res.token);
+  })
+})
