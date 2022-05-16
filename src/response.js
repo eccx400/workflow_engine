@@ -36,22 +36,29 @@ function onFormSubmit(event) {
   Logger.log(totalSum)
 
   // Calls addOrder function which adds the res array into the Google Sheets
-  //AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
+  AddOrder(res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], totalSum, res[9], res[10], res[11], res[12], res[13])
 
   var paymentLink = JSON.parse(StripePayment(totalSum))
+  Logger.log(`${paymentLink["id"]}`)
 
   emailBody += "The payment link is: " + `${paymentLink["url"]}`
-  Logger.log(emailBody)
-
   SendEmail(res[0], emailBody)
 
+  var paymentInfo = JSON.parse(GetStripeResponse(`${paymentLink["id"]}`))
+  Logger.log(GetStripeResponse(`${paymentLink["id"]}`).getContentText())
+
+  var paymentIntent = JSON.parse(GetPaymentIntent(`${paymentInfo["payment_intent"]}`))
+  Logger.log(GetPaymentIntent(`${paymentInfo["payment_intent"]}`).getContentText())
+
   // If Payment succeeds, change paid to Yes, send email, and decrement stock, else send email saying transaction failed
-  if (StripePayment(totalSum).getResponseCode() == 200){
-    //OrderPaid()
-    //SendEmail(res[0], emailBody)
-    //DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
+  if (`${paymentIntent["status"]}` === "succeeded"){
+    OrderPaid()
+    SendEmail(res[0], "Thank you for your purchase")
+    DecrementStock(res[3], res[4], res[5], res[6], res[7], res[8])
+    Logger.log("In this loop")
   }else{
-    //SendEmail(res[0], "Transaction failed")
+    SendEmail(res[0], "Transaction failed")
+    Logger.log("In that loop")
   }
 }
 
@@ -117,10 +124,40 @@ function StripePayment(amount){
     method: "post",
     headers: {
       Authorization:
-        "Basic " + Utilities.base64Encode(process.env.SECRET_KEY + ":"),
+        "Basic " + Utilities.base64Encode(process.env.SECRET_KEY),
     },
     payload: paymentLoad,
   };
+  var res = UrlFetchApp.fetch(url, params);
+  return res
+}
+
+/* Get Stripe Session created with function StripePayment using session ID */
+function GetStripeResponse(session_id){
+  var url = "https://api.stripe.com/v1/checkout/sessions/" + session_id;
+ 
+  var params = {
+  method: "get",
+  headers: {
+    Authorization:
+      "Basic " + Utilities.base64Encode(process.env.SECRET_KEY),
+  },
+};
+  var res = UrlFetchApp.fetch(url, params);
+  return res
+}
+
+/* Get Payment Intent given payment intent ID: Can be used to see card errors during transaction */
+function GetPaymentIntent(paymentIntent){
+  var url = "https://api.stripe.com/v1/payment_intents/" + paymentIntent;
+ 
+  var params = {
+  method: "get",
+  headers: {
+    Authorization:
+      "Basic " + Utilities.base64Encode(process.env.SECRET_KEY),
+  },
+};
   var res = UrlFetchApp.fetch(url, params);
   return res
 }
